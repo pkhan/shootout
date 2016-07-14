@@ -2,7 +2,7 @@
 
 (function () {
 
-  var React = require('react');
+  var React = window.React;
 
   var originalCreateElement = React.createElement;
 
