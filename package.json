@@ -1,0 +1,22 @@
+{
+  "name": "shootout",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkhan/shootout.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pkhan/shootout/issues"
+  },
+  "homepage": "https://github.com/pkhan/shootout#readme",
+  "devDependencies": {
+    "babel-preset-react": "^6.11.1"
+  }
+}
