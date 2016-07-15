@@ -1,0 +1,1 @@
+babel --presets react components/ --out-dir javascripts

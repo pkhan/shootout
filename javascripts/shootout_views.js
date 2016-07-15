@@ -521,4 +521,6 @@ app.Views.Blanket = React.createClass({
   }
 });
 
-ReactDOM.render(React.createElement(app.Views.Container, null), $('.outer')[0]);
+$(function () {
+  ReactDOM.render(React.createElement(app.Views.Container, null), $('.outer')[0]);
+});

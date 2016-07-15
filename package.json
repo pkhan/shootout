@@ -1,7 +1,7 @@
 {
   "name": "shootout",
   "version": "1.0.0",
-  "description": "",
+  "description": "shootout app",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/pkhan/shootout#readme",
   "devDependencies": {
-    "babel-preset-react": "^6.11.1"
+    "babel-preset-react": "^6.11.1",
+    "browserify": "^13.0.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "reactify": "^1.1.1"
   }
 }
