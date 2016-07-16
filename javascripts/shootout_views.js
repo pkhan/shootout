@@ -85,6 +85,8 @@ function ScoringState(gameState) {
   this.playerScores = this.generateScores();
   this.setDefaultPlayers();
   this.setPlayers();
+
+  window.ss = this;
 }
 
 _.extend(ScoringState.prototype, {
@@ -198,6 +200,38 @@ _.extend(ScoringState.prototype, {
 
   oddPlayerActive: function () {
     return this.activePlayerScore === this.oddPlayerScore;
+  },
+
+  endgameRound: function () {
+    var round = [];
+    var playerId = 0;
+    var players = [{
+      score: 0,
+      maxPossibleScore: this.gameState.question_count / 2
+    }, {
+      score: 0,
+      maxPossibleScore: this.gameState.question_count / 2
+    }];
+    var self = this;
+    this.gameState.questions.forEach(function (question, i) {
+      if (question.state === 'correct') {
+        players[playerId].score += 1;
+      } else if (question.state === 'wrong') {
+        players[playerId].maxPossibleScore -= 1;
+      }
+
+      if (players[0].score === players[1].maxPossibleScore || players[1].score === players[0].maxPossibleScore) {
+        round.push(i + 1);
+      }
+
+      playerId = 1 - playerId;
+    });
+
+    return round[0];
+  },
+
+  endgameRoundActive: function () {
+    return this.gameState.question_index === this.endgameRound();
   }
 
 });
@@ -364,7 +398,7 @@ app.Views.Message = React.createClass({
       }
     }
 
-    if (scoringState.winImminent() && !scoringState.lastRound()) {
+    if (scoringState.winImminent() && !scoringState.lastRound() && scoringState.endgameRoundActive()) {
       messages.push("We've reached the end of the game. " + "The score is " + this.scoreMessage() + ".");
       if (scoringState.aboutToLose()) {
         messages.push(scoringState.leadPlayerScore.player.name + " only needs one more correct answer to win. " + "And " + scoringState.behindPlayerScore.player.name + ", you must answer the rest of your questions correctly to stay in the game.");
