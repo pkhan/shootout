@@ -1,22 +1,16 @@
-app.Views.Container = React.createClass({
-  displayName: "Container",
+app.store = {};
 
-  getInitialState: function () {
-    return this.generateBlankState();
-  },
-
+_.extend(app, {
   generateBlankState: function () {
     var questionCount = 16;
     var state = {
       players: [{
         id: 0,
         name: "",
-        pronoun: "They",
         active: true
       }, {
         id: 1,
         name: "",
-        pronoun: "They",
         active: true
       }],
       questions: this.makeQuestions(questionCount),
@@ -25,13 +19,29 @@ app.Views.Container = React.createClass({
       resetting: false
     };
 
+    return state;
+  },
+
+  setupQuestions: function () {
+    var state = app.store;
+
     var splitQuestions = this.divideQuestions(state.questions);
     state.players[0].questions = splitQuestions[0];
     state.players[1].questions = splitQuestions[1];
     state.even_questions = splitQuestions[0];
     state.odd_questions = splitQuestions[1];
+  },
 
-    return state;
+  populateInitialState: function () {
+    var data = localStorage.getItem('gameState');
+    var gameState = data ? JSON.parse(data) : null;
+    if (gameState) {
+      app.store = gameState;
+    } else {
+      app.store = app.generateBlankState();
+    }
+    app.setupQuestions();
+    return app.store;
   },
 
   makeQuestions: function (num) {
@@ -60,6 +70,85 @@ app.Views.Container = React.createClass({
     return [questions1, questions2];
   },
 
+  setState: function (newState) {
+    app.store = newState;
+    localStorage.setItem("gameState", JSON.stringify(newState));
+  },
+
+  resetState: function () {
+    app.setState(app.generateBlankState());
+  }
+});
+
+app.token = app.dispatcher.register(function (payload) {
+  if (payload.actionType == "player-change") {
+    var playerId = payload.data.id;
+    var update = payload.data.attributes;
+    var newState = _.clone(app.store);
+    _.extend(newState.players[playerId], update);
+    app.setState(newState);
+  }
+
+  if (payload.actionType == "question-answered") {
+    var questionState = payload.data.state;
+    var newState = _.clone(app.store);
+    var playerId = payload.data.playerId;
+    var otherPlayerId = 1 - playerId;
+
+    if (playerId === 1 && newState.question_index === 0) {
+      // flip the arrays
+      newState.players[0].questions = newState.odd_questions;
+      newState.players[1].questions = newState.even_questions;
+    } else if (playerId === 0 && newState.question_index === 0) {
+      newState.players[0].questions = newState.even_questions;
+      newState.players[1].questions = newState.odd_questions;
+    }
+
+    newState.questions[newState.question_index].state = questionState;
+    newState.question_index += 1;
+    newState.players[playerId].active = false;
+    newState.players[otherPlayerId].active = true;
+
+    app.setState(newState);
+  }
+
+  if (payload.actionType == "undo") {
+    var newState = _.clone(app.store);
+    newState.question_index -= 1;
+    newState.questions[newState.question_index].state = "unanswered";
+
+    if (newState.question_index === 0) {
+      newState.players[0].active = true;
+      newState.players[1].active = true;
+    } else {
+      newState.players[0].active = !newState.players[0].active;
+      newState.players[1].active = !newState.players[1].active;
+    }
+
+    app.setState(newState);
+  }
+
+  if (payload.actionType == "reset") {
+    var newState;
+    if (app.store.resetting) {
+      newState = app.generateBlankState();
+    } else {
+      newState = _.clone(app.store);
+      newState.resetting = true;
+    }
+
+    app.setState(newState);
+    app.setupQuestions();
+  }
+});
+
+app.Views.Container = React.createClass({
+  displayName: "Container",
+
+  getInitialState: function () {
+    return app.populateInitialState();
+  },
+
   render: function () {
     return React.createElement(
       "div",
@@ -73,64 +162,8 @@ app.Views.Container = React.createClass({
   componentDidMount: function () {
     var self = this;
     app.dispatcher.register(function (payload) {
-      if (payload.actionType == "player-change") {
-        var playerId = payload.data.id;
-        var update = payload.data.attributes;
-        var newState = _.clone(self.state);
-        _.extend(newState.players[playerId], update);
-        self.setState(newState);
-      }
-
-      if (payload.actionType == "question-answered") {
-        var questionState = payload.data.state;
-        var newState = _.clone(self.state);
-        var playerId = payload.data.playerId;
-        var otherPlayerId = 1 - playerId;
-
-        if (playerId === 1 && newState.question_index === 0) {
-          // flip the arrays
-          newState.players[0].questions = newState.odd_questions;
-          newState.players[1].questions = newState.even_questions;
-        } else if (playerId === 0 && newState.question_index === 0) {
-          newState.players[0].questions = newState.even_questions;
-          newState.players[1].questions = newState.odd_questions;
-        }
-
-        newState.questions[newState.question_index].state = questionState;
-        newState.question_index += 1;
-        newState.players[playerId].active = false;
-        newState.players[otherPlayerId].active = true;
-
-        self.setState(newState);
-      }
-
-      if (payload.actionType == "undo") {
-        var newState = _.clone(self.state);
-        newState.question_index -= 1;
-        newState.questions[newState.question_index].state = "unanswered";
-
-        if (newState.question_index === 0) {
-          newState.players[0].active = true;
-          newState.players[1].active = true;
-        } else {
-          newState.players[0].active = !newState.players[0].active;
-          newState.players[1].active = !newState.players[1].active;
-        }
-
-        self.setState(newState);
-      }
-
-      if (payload.actionType == "reset") {
-        var newState;
-        if (self.state.resetting) {
-          newState = self.getInitialState();
-        } else {
-          newState = _.clone(self.state);
-          newState.resetting = true;
-        }
-
-        self.setState(newState);
-      }
+      app.dispatcher.waitFor([app.token]);
+      self.setState(app.store);
     });
   }
 });
@@ -434,11 +467,6 @@ app.Views.Player = React.createClass({
           "button",
           { className: "btn", onClick: this.handleEraseName },
           React.createElement("i", { className: "fa fa-ban" })
-        ),
-        React.createElement(
-          "button",
-          { className: "btn", onClick: this.handlePronounChange },
-          this.props.player.pronoun
         )
       ),
       React.createElement(

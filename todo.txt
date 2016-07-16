@@ -1,7 +1,8 @@
+X- None of the possible messages include pronouns, so I'll remove the pronoun selector
+X- I'm going to integrate local storage so if the browser reloads for some reason, it'll preserve state
+
 - The inactive player blanket covers the name input which isn't necessary, I think I'll have it just cover the buttons
-- None of the possible messages include pronouns, so I'll remove the pronoun selector
 - I'd like Question # {x} to be aware of when the game is over and display Game Over instead of Question #17
-- I'm going to integrate local storage so if the browser reloads for some reason, it'll preserve state
 - I'm going to try to make it offline compatible so that it could theoretically load up entirely from iPad cache with no internet (never done this before, no promises, but I think I can)
 - Present a message when players are tied at halfway
 - I don't know if this is a pain in the butt but could we change "You have X questions remaining" to "We're on question X"? So like the inverse
