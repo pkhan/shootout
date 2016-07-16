@@ -41,6 +41,7 @@ _.extend(app, {
     var gameState = data ? JSON.parse(data) : null;
     if (gameState) {
       app.store = gameState;
+      app.store.resetting = false;
     } else {
       app.store = app.generateBlankState();
     }
@@ -310,12 +311,24 @@ app.token = app.dispatcher.register(function (payload) {
     if (app.store.resetting) {
       newState = app.generateBlankState();
     } else {
+      window.setTimeout(function () {
+        app.dispatcher.dispatch({
+          actionType: "cancel-reset"
+        });
+      }, 5000);
       newState = _.clone(app.store);
       newState.resetting = true;
     }
 
     app.setState(newState);
     app.setupQuestions();
+  }
+
+  if (payload.actionType == "cancel-reset") {
+    var newState = _.clone(app.store);
+    newState.resetting = false;
+
+    app.setState(newState);
   }
 });
 
