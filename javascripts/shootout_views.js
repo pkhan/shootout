@@ -489,10 +489,10 @@ app.Views.Player = React.createClass({
             { className: "btn btn-danger", onClick: this.handleWrong },
             React.createElement("i", { className: "fa fa-times" })
           )
-        )
+        ),
+        React.createElement(app.Views.Blanket, { show: !this.props.player.active })
       ),
-      React.createElement(app.Views.Answers, { questions: this.props.player.questions }),
-      React.createElement(app.Views.Blanket, { show: !this.props.player.active })
+      React.createElement(app.Views.Answers, { questions: this.props.player.questions })
     );
   }
 });

@@ -434,9 +434,9 @@ app.Views.Player = React.createClass({
             <i className="fa fa-times"></i>
           </button>
         </div>
+        <app.Views.Blanket show={!this.props.player.active} />
       </div>
       <app.Views.Answers questions={this.props.player.questions} />
-      <app.Views.Blanket show={!this.props.player.active} />
     </div>
   }
 });

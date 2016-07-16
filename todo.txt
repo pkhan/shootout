@@ -1,24 +1,94 @@
 X- None of the possible messages include pronouns, so I'll remove the pronoun selector
 X- I'm going to integrate local storage so if the browser reloads for some reason, it'll preserve state
+X- The inactive player blanket covers the name input which isn't necessary, I think I'll have it just cover the buttons
 
-- The inactive player blanket covers the name input which isn't necessary, I think I'll have it just cover the buttons
+
 - I'd like Question # {x} to be aware of when the game is over and display Game Over instead of Question #17
 - I'm going to try to make it offline compatible so that it could theoretically load up entirely from iPad cache with no internet (never done this before, no promises, but I think I can)
-- Present a message when players are tied at halfway
-- I don't know if this is a pain in the butt but could we change "You have X questions remaining" to "We're on question X"? So like the inverse
-We're on question 7 out of 8
 
-PLAYER 1 – GAME WIN POINT:
-[NAME], you’re ahead by [# points], and you each have only [# questions player 1 has] question[s] left. If you answer this question correctly, you’ll win the game.
 
-PLAYER 2 – GAME WIN POINT:
-[NAME], you’re ahead by [# points], and [OPPONENT] only has [# questions player 1 has] question[s] left. If you answer this question correctly, you’ll win the game.
+FIRST TIME A SITUATIONAL MESSAGE POPS UP:
 
-PLAYERS 1 & 2 – ELIMINATION POINT:
-[NAME], you’re behind by [# points], and you only have [# questions active player has] question[s] left. You must answer this correctly to stay in the game. If you miss, [OPPONENT] wins.
+We’ve reached the end game.
 
-PLAYER 2 – LAST QUESTION GAME WIN POINT:
-[NAME], the score is tied, and this is the last question. If you answer this question correctly, you’ll win the game.
+(followed by one of the below messages)
 
-PLAYER 2 – LAST QUESTION ELIMINATION POINT:
-[NAME], you're behind by 1, and this is the last question. If you answer this correctly, you stay in the game, and we’ll go to a tiebreaker. If you miss, [OPPONENT] wins.
+///
+
+BEFORE LAST QUESTION
+
+(ELIMINATION POINT)
+
+The score is [X] to [Y].
+
+[LEADING CONTESTANT] only needs one more correct answer to win.
+
+And [LOSING CONTESTANT], you must answer the rest of your questions correctly to stay in the game.
+
+///
+
+BEFORE LAST QUESTION
+
+(WINNING POINT)
+
+The score is [X] to [Y].
+
+[CONTESTANT NAME], if you get this question right, you win.
+
+///
+
+LAST QUESTION
+
+(TIED SCORE, PLAYER 1’S TURN)
+
+The score is tied.
+
+You each have one question left. 
+
+///
+
+LAST QUESTION
+
+(PLAYER 1 LEADING, PLAYER 1’S TURN)
+
+The score is [X] to [Y].
+
+You each have one question left.
+
+[CONTESTANT NAME], if you get this question right, you win.
+
+///
+
+LAST QUESTION
+
+(PLAYER 1 LOSING, PLAYER 1’S TURN)
+
+The score is [X] to [Y].
+
+You each have one question left.
+
+[LEADING CONTESTANT] only needs one more correct answer to win.
+
+And [LOSING CONTESTANT], you must answer this question correctly to stay in the game.
+
+///
+
+LAST QUESTION
+
+(TIED SCORE, PLAYER 2’S TURN)
+
+The score is tied.
+
+This is the last question.
+
+[CONTESTANT NAME] if you get this question right, you win.  If you miss, we go to a tiebreaker.
+
+///
+
+(PLAYER 2 LOSING, PLAYER 2’S TURN)
+
+The score is [X] to [Y].
+
+This is the last question.
+
+[LOSING CONTESTANT], you must answer this question correctly to stay in the game and force a tiebreaker.
