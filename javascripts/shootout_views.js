@@ -80,6 +80,128 @@ _.extend(app, {
   }
 });
 
+function ScoringState(gameState) {
+  this.gameState = gameState;
+  this.playerScores = this.generateScores();
+  this.setDefaultPlayers();
+  this.setPlayers();
+}
+
+_.extend(ScoringState.prototype, {
+  generateScores: function () {
+    var questionsPerPlayer = this.gameState.question_count / 2;
+    return this.gameState.players.map(function (player) {
+      var score = 0;
+      var lastAnsweredIndex = -1;
+      var maxPossibleScore = 0;
+      player.questions.forEach(function (question, i) {
+        if (question.state === "correct") {
+          score++;
+          maxPossibleScore++;
+          lastAnsweredIndex = i;
+        }
+
+        if (question.state === "wrong") {
+          lastAnsweredIndex = i;
+        }
+
+        if (question.state === "unanswered") {
+          maxPossibleScore++;
+        }
+      });
+
+      return {
+        score: score,
+        maxPossibleScore: maxPossibleScore,
+        lastAnsweredIndex: lastAnsweredIndex,
+        remainingQuestions: questionsPerPlayer - lastAnsweredIndex - 1,
+        player: player
+      };
+    });
+  },
+
+  setDefaultPlayers: function () {
+    this.activePlayerScore = this.inactivePlayerScore = this.leadPlayerScore = this.behindPlayerScore = this.evenPlayerScore = this.oddPlayerScore = this.playerScores[0];
+  },
+
+  setPlayers: function () {
+    var self = this;
+    var highScore = -1;
+    var lowScore = 999;
+    this.playerScores.forEach(function (playerScore) {
+      if (playerScore.score > highScore) {
+        self.leadPlayerScore = playerScore;
+        highScore = playerScore.score;
+      }
+      if (playerScore.score < lowScore) {
+        self.behindPlayerScore = playerScore;
+        lowScore = playerScore.score;
+      }
+
+      if (playerScore.player.active) {
+        self.activePlayerScore = playerScore;
+      } else {
+        self.inactivePlayerScore = playerScore;
+      }
+
+      if (playerScore.player.questions === self.gameState.even_questions) {
+        self.evenPlayerScore = playerScore;
+      } else {
+        self.oddPlayerScore = playerScore;
+      }
+    });
+  },
+
+  gameTied: function () {
+    return this.playerScores[0].score === this.playerScores[1].score;
+  },
+
+  halfway: function () {
+    return this.gameState.question_index === this.gameState.question_count / 2;
+  },
+
+  gameOver: function () {
+    return this.leadPlayerScore.score > this.behindPlayerScore.maxPossibleScore || this.gameState.question_index === this.gameState.question_count;
+  },
+
+  aboutToWin: function () {
+    return this.activePlayerScore.score === this.inactivePlayerScore.maxPossibleScore;
+  },
+
+  aboutToLose: function () {
+    return this.inactivePlayerScore.score === this.activePlayerScore.maxPossibleScore;
+  },
+
+  winImminent: function () {
+    return this.aboutToLose() || this.aboutToWin();
+  },
+
+  lastRound: function () {
+    return this.gameState.question_index >= this.gameState.question_count - 2 && this.gameState.question_index < this.gameState.question_count;
+  },
+
+  lastQuestion: function () {
+    return this.gameState.question_index === this.gameState.question_count - 1;
+  },
+
+  inTheLead: function () {
+    return this.leadPlayerScore === this.activePlayerScore && !this.gameTied();
+  },
+
+  behind: function () {
+    return this.behindPlayerScore === this.activePlayerScore && !this.gameTied();
+  },
+
+  evenPlayerActive: function () {
+    return this.activePlayerScore === this.evenPlayerScore;
+  },
+
+  oddPlayerActive: function () {
+    return this.activePlayerScore === this.oddPlayerScore;
+  }
+
+});
+
 app.token = app.dispatcher.register(function (payload) {
   if (payload.actionType == "player-change") {
     var playerId = payload.data.id;
@@ -150,12 +272,27 @@ app.Views.Container = React.createClass({
   },
 
   render: function () {
+    var scoringState = new ScoringState(this.state);
+    var players = this.state.players.map(function (player) {
+      return _.clone(player);
+    });
+    if (scoringState.gameOver()) {
+      players.forEach(function (player) {
+        player.active = false;
+      });
+    }
     return React.createElement(
       "div",
       { className: "container" },
-      React.createElement(app.Views.Header, { question_index: this.state.question_index }),
-      React.createElement(app.Views.Message, { game_state: this.state }),
-      React.createElement(app.Views.Players, { players: this.state.players })
+      React.createElement(app.Views.Header, {
+        question_index: this.state.question_index,
+        scoring_state: scoringState
+      }),
+      React.createElement(app.Views.Message, {
+        scoring_state: scoringState,
+        resetting: this.state.resetting
+      }),
+      React.createElement(app.Views.Players, { players: players })
     );
   },
 
@@ -174,6 +311,7 @@ app.Views.Header = React.createClass({
 
   render: function () {
     var questionNum = this.props.question_index + 1;
+    var text = this.props.scoring_state.gameOver() ? "Game Over" : "Question #" + questionNum;
     return React.createElement(
       "div",
       { className: "row header" },
@@ -183,9 +321,7 @@ app.Views.Header = React.createClass({
         React.createElement(
           "h3",
           null,
-          " Question #",
-          questionNum,
-          " "
+          text
         )
       )
     );
@@ -208,139 +344,74 @@ app.Views.Message = React.createClass({
   },
 
   generateMessage: function () {
-    var game_state = this.props.game_state;
-    var players = game_state.players;
-    var scores = this.calculateScores();
-    var activePlayer = _.findWhere(players, { active: true });
-    var otherPlayer = players[1 - activePlayer.id];
-    var activePlayerScore = scores[activePlayer.id];
-    var otherPlayerScore = scores[otherPlayer.id];
-
-    var baseMessage = "The score is " + players[0].name + " " + scores[0] + ", " + players[1].name + " " + scores[1] + ".";
-
+    var scoringState = this.props.scoring_state;
     var messages = [];
 
-    var baseMessage = JSON.stringify(scores);
-
-    var specialMessage = "";
-
-    var halfway = game_state.question_index === game_state.question_count / 2;
-    var remainingQuestions = game_state.question_count - game_state.question_index;
-    var leadState = "in the lead";
-    var giveScore = false;
-
-    var aboutToWin = activePlayerScore.score === otherPlayerScore.maxPossibleScore;
-    var aboutToLose = otherPlayerScore.score === activePlayerScore.maxPossibleScore;
-    var lastQuestion = game_state.question_index + 1 === game_state.question_count;
-    var gameOver = false;
-    var winningPlayer;
-    var winningPlayerScore;
-    var losingPlayer;
-    var losingPlayerScore;
-
-    if (activePlayerScore.score > otherPlayerScore.maxPossibleScore) {
-      winningPlayer = activePlayer;
-      losingPlayer = otherPlayer;
-      winningPlayerScore = activePlayerScore;
-      losingPlayerScore = otherPlayerScore;
-      gameOver = true;
-    }
-
-    if (otherPlayerScore.score > activePlayerScore.maxPossibleScore) {
-      winningPlayer = otherPlayer;
-      losingPlayer = activePlayer;
-      winningPlayerScore = otherPlayerScore;
-      losingPlayerScore = activePlayerScore;
-      gameOver = true;
-    }
-
-    if (game_state.question_index === game_state.question_count) {
-      gameOver = true;
-    }
-
-    if (gameOver) {
-      if (winningPlayer) {
-        return winningPlayer.name + " has won " + winningPlayerScore.score + " to " + losingPlayerScore.score + ".";
+    if (scoringState.gameOver()) {
+      if (scoringState.gameTied()) {
+        return "We are tied";
       } else {
-        return activePlayer.name + " and " + otherPlayer.name + " have tied.";
+        return scoringState.leadPlayerScore.player.name + " has won " + this.scoreMessage() + ".";
+      }
+    };
+
+    if (scoringState.halfway() && !scoringState.winImminent()) {
+      messages.push("We are at the halfway point.");
+      if (scoringState.gameTied()) {
+        messages.push("The game is tied at " + scoringState.playerScore[0].score + " points each.");
+      } else {
+        messages.push(scoringState.leadPlayerScore.player.name + " is in the lead, " + this.scoreMessage() + ".");
       }
     }
 
-    if (aboutToLose || aboutToWin) {
-      giveScore = true;
+    if (scoringState.winImminent() && !scoringState.lastRound()) {
+      messages.push("We've reached the end of the game. " + "The score is " + this.scoreMessage() + ".");
+      if (scoringState.aboutToLose()) {
+        messages.push(scoringState.leadPlayerScore.player.name + " only needs one more correct answer to win. " + "And " + scoringState.behindPlayerScore.player.name + ", you must answer the rest of your questions correctly to stay in the game.");
+      } else if (scoringState.aboutToWin()) {
+        messages.push(scoringState.leadPlayerScore.player.name + ", if you get this question right, you win.");
+      }
     }
 
-    if (activePlayerScore.score === otherPlayerScore.score) {
-      leadState = "tied";
-    } else if (activePlayerScore.score < otherPlayerScore.score) {
-      leadState = "behind";
-    }
+    if (scoringState.lastRound()) {
+      if (scoringState.evenPlayerActive()) {
 
-    if (halfway) {
-      giveScore = true;
-      messages.push("We are halfway through our questions.");
-    }
+        if (scoringState.gameTied()) {
+          messages.push("The score is tied.");
+          messages.push("You each have one question left.");
+        } else if (scoringState.aboutToWin()) {
+          messages.push("The score is " + this.scoreMessage() + ".");
+          messages.push("You each have one question left.");
+          messages.push(scoringState.leadPlayerScore.player.name + ", if you get this question right, you win.");
+        } else if (scoringState.aboutToLose()) {
+          messages.push("The score is " + this.scoreMessage() + ".");
+          messages.push("You each have one question left");
+          messages.push(scoringState.leadPlayerScore.player.name + " only needs one more correct answer to win.");
+          messages.push("And " + scoringState.behindPlayerScore.player.name + ", you must answer this question correctly to stay in the game.");
+        }
+      } else if (scoringState.oddPlayerActive()) {
 
-    if (giveScore) {
-      messages.push(activePlayer.name + ", you're " + leadState + " " + activePlayerScore.score + " to " + otherPlayerScore.score + ".");
-    }
-
-    if (lastQuestion) {
-      messages.push("This is the last question");
-      if (aboutToWin) {
-        messages.push("If you answer correctly, you'll win the game. If you miss, we'll go to a tiebreaker.");
-      }
-      if (aboutToLose) {
-        messages.push("If you get this right, you stay in the game, and we'll go to a tiebreaker. If you miss, " + otherPlayer.name + " wins.");
-      }
-    } else {
-      if (aboutToWin || aboutToLose) {
-        messages.push("There are " + remainingQuestions + " questions remaining.");
-      }
-      if (aboutToWin) {
-        messages.push("If you answer this question correctly, you'll win the game.");
-      }
-
-      if (aboutToLose) {
-        messages.push("You must answer this correctly to stay in the game.  If you miss, " + otherPlayer.name + " wins.");
+        if (scoringState.gameTied()) {
+          messages.push("The score is tied.");
+          messages.push("This is the last question.");
+          messages.push(scoringState.activePlayerScore.player.name + ", if you get this question right, you win.  If you miss, we go to a tiebreaker.");
+        } else if (scoringState.aboutToLose()) {
+          messages.push("The score is " + this.scoreMessage() + ".");
+          messages.push("This is the last question.");
+          messages.push(scoringState.behindPlayerScore.player.name + ", you must answer this question correctly to stay in the game and force a tiebreaker.");
+        }
       }
     }
 
     return messages.join(" ");
   },
 
-  calculateScores: function () {
-    var questionsPerPlayer = this.props.game_state.question_count / 2;
-    return this.props.game_state.players.map(function (player) {
-      var score = 0;
-      var lastAnsweredIndex = -1;
-      var maxPossibleScore = 0;
-      player.questions.forEach(function (question, i) {
-        if (question.state === "correct") {
-          score++;
-          maxPossibleScore++;
-          lastAnsweredIndex = i;
-        }
-
-        if (question.state === "wrong") {
-          lastAnsweredIndex = i;
-        }
-
-        if (question.state === "unanswered") {
-          maxPossibleScore++;
-        }
-      });
-      return {
-        score: score,
-        maxPossibleScore: maxPossibleScore,
-        lastAnsweredIndex: lastAnsweredIndex,
-        remainingQuestions: questionsPerPlayer - lastAnsweredIndex - 1
-      };
-    });
+  scoreMessage: function () {
+    return this.props.scoring_state.leadPlayerScore.score + " to " + this.props.scoring_state.behindPlayerScore.score;
   },
 
   render: function () {
-    var resetMessage = this.props.game_state.resetting ? "Sure?" : "Reset";
+    var resetMessage = this.props.resetting ? "Sure?" : "Reset";
     return React.createElement(
       "div",
       { className: "row message" },
