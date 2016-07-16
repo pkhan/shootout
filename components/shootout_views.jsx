@@ -8,18 +8,21 @@ _.extend(app, {
         {
           id: 0,
           name: "",
-          active: true
+          active: true,
+          pronoun: "They"
         },
         {
           id: 1,
           name: "",
-          active: true
+          active: true,
+          pronoun: "They"
         }
       ],
       questions: this.makeQuestions(questionCount),
       question_count: questionCount,
       question_index: 0,
-      resetting: false
+      resetting: false,
+      even_player_id: 0
     };
 
     return state;
@@ -29,8 +32,9 @@ _.extend(app, {
     var state = app.store;
 
     var splitQuestions = this.divideQuestions(state.questions);
-    state.players[0].questions = splitQuestions[0];
-    state.players[1].questions = splitQuestions[1];
+
+    state.players[state.even_player_id].questions = splitQuestions[0];
+    state.players[1 - state.even_player_id].questions = splitQuestions[1];
     state.even_questions = splitQuestions[0];
     state.odd_questions = splitQuestions[1];
   },
@@ -83,13 +87,26 @@ _.extend(app, {
   }
 });
 
+app.pronounTranslator = {
+  "They": {
+    possessive: "their",
+    pronoun: "they",
+  },
+  "He": {
+    possessive: "his",
+    pronoun: "he"
+  },
+  "She": {
+    possessive: "her",
+    pronoun: "she"
+  }
+};
+
 function ScoringState(gameState) {
   this.gameState = gameState;
   this.playerScores = this.generateScores();
   this.setDefaultPlayers();
   this.setPlayers();
-
-  window.ss = this;
 }
 
 _.extend(ScoringState.prototype, {
@@ -247,7 +264,9 @@ _.extend(ScoringState.prototype, {
   },
 
   endgameRoundActive: function() {
-    return this.gameState.question_index === this.endgameRound();
+    var endgameRound = this.endgameRound();
+    var possibleIndices = [endgameRound, endgameRound + 1]
+    return possibleIndices.indexOf(this.gameState.question_index) > -1;
   }
 
 });
@@ -269,9 +288,11 @@ app.token = app.dispatcher.register(function(payload) {
 
     if(playerId === 1 && newState.question_index === 0) {
       // flip the arrays
+      newState.even_player_id = 1;
       newState.players[0].questions = newState.odd_questions;
       newState.players[1].questions = newState.even_questions;
     } else if (playerId === 0 && newState.question_index === 0) {
+      newState.even_player_id = 0;
       newState.players[0].questions = newState.even_questions;
       newState.players[1].questions = newState.odd_questions;
     }
@@ -419,11 +440,14 @@ app.Views.Message = React.createClass({
       );
       if(scoringState.aboutToLose()) {
         messages.push(
-          scoringState.leadPlayerScore.player.name +
-          " only needs one more correct answer to win. " +
-          "And " +
           scoringState.behindPlayerScore.player.name +
-          ", you must answer the rest of your questions correctly to stay in the game."
+          ", to stay in the game, two things need to happen. " +
+          "You must answer the rest of your questions correctly," +
+          " and " + 
+          scoringState.leadPlayerScore.player.name +
+          " has to miss the rest of " +
+          app.pronounTranslator[scoringState.leadPlayerScore.player.pronoun].possessive +
+          " questions."
         );
       } else if(scoringState.aboutToWin()) {
         messages.push(
@@ -456,15 +480,14 @@ app.Views.Message = React.createClass({
             this.scoreMessage() +
             "."
           );
-          messages.push("You each have one question left");
+          messages.push("You each have one question left.");
           messages.push(
-            scoringState.leadPlayerScore.player.name +
-            " only needs one more correct answer to win."
-          );
-          messages.push(
-            "And " +
             scoringState.behindPlayerScore.player.name +
-            ", you must answer this question correctly to stay in the game."
+            ", to stay in the game, you must answer this question correctly, and " +
+            scoringState.leadPlayerScore.player.name +
+            " has to miss " +
+            app.pronounTranslator[scoringState.leadPlayerScore.player.pronoun].possessive +
+            " question."
           );
         }
 
@@ -475,7 +498,7 @@ app.Views.Message = React.createClass({
           messages.push("This is the last question.");
           messages.push(
             scoringState.activePlayerScore.player.name + 
-            ", if you get this question right, you win.  If you miss, we go to a tiebreaker."
+            ", if you answer this question correctly, you win."
           );
         } else if (scoringState.aboutToLose()) {
           messages.push(
@@ -597,7 +620,7 @@ app.Views.Player = React.createClass({
           value={this.props.player.name} 
           onChange={this.handleNameChange}
         />
-        <button className="btn" onClick={this.handleEraseName}><i className="fa fa-ban"></i></button>
+        <button className="btn" onClick={this.handlePronounChange}>{this.props.player.pronoun}</button>
       </div>
       <div className="actions">
         <div className="action-outer">

@@ -2,7 +2,10 @@ X- None of the possible messages include pronouns, so I'll remove the pronoun se
 X- I'm going to integrate local storage so if the browser reloads for some reason, it'll preserve state
 X- The inactive player blanket covers the name input which isn't necessary, I think I'll have it just cover the buttons
 X- I'd like Question # {x} to be aware of when the game is over and display Game Over instead of Question #17
+X- Fix active/hover button states
+X- Fix player flipping bug on refresh
 
+- Make reset undoable
 - I'm going to try to make it offline compatible so that it could theoretically load up entirely from iPad cache with no internet (never done this before, no promises, but I think I can)
 
 

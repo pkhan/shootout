@@ -50,6 +50,10 @@ body {
   background-color: #000;
 }
 
+.btn:active, .btn:hover {
+  color: #FFF;
+}
+
 .green {
   color: #449d44;
 }
@@ -100,7 +104,7 @@ body {
 }
 
 .player-name .btn {
-  width: 75px;
+  width: 60px;
 }
 
 .blanket {
