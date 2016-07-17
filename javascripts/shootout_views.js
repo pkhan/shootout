@@ -250,8 +250,7 @@ _.extend(ScoringState.prototype, {
 
   endgameRoundActive: function () {
     var endgameRound = this.endgameRound();
-    var possibleIndices = [endgameRound, endgameRound + 1];
-    return possibleIndices.indexOf(this.gameState.question_index) > -1;
+    return endgameRound === this.gameState.question_index;
   }
 
 });
@@ -432,8 +431,11 @@ app.Views.Message = React.createClass({
       }
     }
 
-    if (scoringState.winImminent() && !scoringState.lastRound() && scoringState.endgameRoundActive()) {
-      messages.push("We've reached the end of the game. " + "The score is " + this.scoreMessage() + ".");
+    if (scoringState.winImminent() && !scoringState.lastRound()) {
+      if (scoringState.endgameRoundActive()) {
+        messages.push("We've reached the end game");
+      }
+      messages.push("The score is " + this.scoreMessage() + ".");
       if (scoringState.aboutToLose()) {
         messages.push(scoringState.behindPlayerScore.player.name + ", to stay in the game, two things need to happen. " + "You must answer the rest of your questions correctly," + " and " + scoringState.leadPlayerScore.player.name + " has to miss the rest of " + app.pronounTranslator[scoringState.leadPlayerScore.player.pronoun].possessive + " questions.");
       } else if (scoringState.aboutToWin()) {

@@ -266,8 +266,7 @@ _.extend(ScoringState.prototype, {
 
   endgameRoundActive: function() {
     var endgameRound = this.endgameRound();
-    var possibleIndices = [endgameRound, endgameRound + 1]
-    return possibleIndices.indexOf(this.gameState.question_index) > -1;
+    return endgameRound === this.gameState.question_index;
   }
 
 });
@@ -444,9 +443,11 @@ app.Views.Message = React.createClass({
       }
     }
 
-    if(scoringState.winImminent() && !scoringState.lastRound() && scoringState.endgameRoundActive()) {
+    if(scoringState.winImminent() && !scoringState.lastRound()) {
+      if(scoringState.endgameRoundActive()) {
+        messages.push("We've reached the end game");
+      }
       messages.push(
-        "We've reached the end of the game. " +
         "The score is " + 
         this.scoreMessage() +
         "."
