@@ -425,7 +425,7 @@ app.Views.Message = React.createClass({
     if (scoringState.halfway() && !scoringState.winImminent()) {
       messages.push("We are at the halfway point.");
       if (scoringState.gameTied()) {
-        messages.push("The game is tied at " + scoringState.playerScore[0].score + " points each.");
+        messages.push("The game is tied at " + scoringState.leadplayerScore.score + " points each.");
       } else {
         messages.push(scoringState.leadPlayerScore.player.name + " is in the lead, " + this.scoreMessage() + ".");
       }
