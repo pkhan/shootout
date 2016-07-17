@@ -430,7 +430,7 @@ app.Views.Message = React.createClass({
       if(scoringState.gameTied()) {
         messages.push(
           "The game is tied at " +
-          scoringState.leadplayerScore.score + 
+          scoringState.leadPlayerScore.score + 
           " points each."
         );
       } else {
