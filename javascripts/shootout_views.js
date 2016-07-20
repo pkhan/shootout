@@ -386,7 +386,7 @@ app.Views.Header = React.createClass({
         "div",
         { className: "col-xs-12" },
         React.createElement(
-          "h3",
+          "h4",
           null,
           text
         )

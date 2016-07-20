@@ -8,6 +8,10 @@ body {
   text-align: center;
 }
 
+p {
+  font-size: 17px;
+}
+
 .global-actions {
   width: 100%;
   position: absolute;
@@ -23,11 +27,11 @@ body {
 }
 
 .header {
-  height: 10%;
+  height: 7%;
 }
 
 .message {
-  height: 20%;
+  height: 23%;
   border-bottom: #DDD solid 2px;
 }
 

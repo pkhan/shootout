@@ -391,7 +391,7 @@ app.Views.Header = React.createClass({
     var text = this.props.scoring_state.gameOver() ? "Game Over" : "Question #" + questionNum;
     return <div className="row header">
       <div className="col-xs-12">
-        <h3>{text}</h3>
+        <h4>{text}</h4>
       </div>
     </div>
   }
