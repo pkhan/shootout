@@ -433,12 +433,13 @@ app.Views.Message = React.createClass({
 
     if (scoringState.winImminent() && !scoringState.lastRound()) {
       if (scoringState.endgameRoundActive()) {
-        messages.push("We've reached the end game");
+        messages.push("Here's the situation.");
       }
-      messages.push("The score is " + this.scoreMessage() + ".");
       if (scoringState.aboutToLose()) {
-        messages.push(scoringState.behindPlayerScore.player.name + ", to stay in the game, two things need to happen. " + "You must answer the rest of your questions correctly," + " and " + scoringState.leadPlayerScore.player.name + " has to miss the rest of " + app.pronounTranslator[scoringState.leadPlayerScore.player.pronoun].possessive + " questions.");
+        // [LEADER] is in the lead [X-Y]. [LOSER], if you get one more question wrong, or if [LEADER] answers one more question correctly, [LEADER] will win the game.
+        messages.push(scoringState.leadPlayerScore.player.name + " is in the lead " + this.scoreMessage() + ". " + scoringState.behindPlayerScore.player.name + ", if you get one more question wrong, " + "or if " + scoringState.leadPlayerScore.player.name + " answers one more question correctly, " + scoringState.leadPlayerScore.player.name + " will win the game.");
       } else if (scoringState.aboutToWin()) {
+        messages.push("The score is " + this.scoreMessage() + ".");
         messages.push(scoringState.leadPlayerScore.player.name + ", if you get this question right, you win.");
       }
     }
