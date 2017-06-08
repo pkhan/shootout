@@ -1,1 +1,1 @@
-babel --presets react components/ --out-dir javascripts
+node_modules/.bin/babel --presets react components/ --out-dir javascripts

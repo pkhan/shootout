@@ -448,19 +448,16 @@ app.Views.Message = React.createClass({
         messages.push("Here's the situation.");
       }
       if(scoringState.aboutToLose()) {
-        // [LEADER] is in the lead [X-Y]. [LOSER], if you get one more question wrong, or if [LEADER] answers one more question correctly, [LEADER] will win the game.
+        // [LEADER] is in the lead [X-Y]. [LOSER], if you get this question wrong, [LEADER] wins the game.
         messages.push(
           scoringState.leadPlayerScore.player.name +
           " is in the lead " +
           this.scoreMessage() +
           ". " +
           scoringState.behindPlayerScore.player.name +
-          ", if you get one more question wrong, " +
-          "or if " +
+          ", if you get this question wrong, " +
           scoringState.leadPlayerScore.player.name +
-          " answers one more question correctly, " +
-          scoringState.leadPlayerScore.player.name +
-          " will win the game."
+          " wins the game."
         );
       } else if(scoringState.aboutToWin()) {
         messages.push(
