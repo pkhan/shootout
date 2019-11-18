@@ -1,0 +1,170 @@
+html,body,.outer,.container,.player {
+  height: 100%;
+}
+
+body {
+  background-color: #000;
+  color: #DDD;
+  text-align: center;
+}
+
+p {
+  font-size: 17px;
+}
+
+.global-actions {
+  width: 100%;
+  position: absolute;
+  bottom: 20px;
+}
+
+.global-actions .btn {
+  margin: 0 10px;
+}
+
+.container {
+  padding: 0;
+}
+
+.header {
+  height: 7%;
+}
+
+.message {
+  height: 23%;
+  border-bottom: #DDD solid 2px;
+}
+
+.message .col-xs-12 {
+  height: 100%;
+  padding: 0;
+}
+
+.players {
+  height: 70%;
+}
+
+.btn {
+  background-color: black;
+  border-color: #DDD;
+}
+
+.btn:focus {
+  color: #FFF;
+  background-color: #000;
+}
+
+.btn:active, .btn:hover {
+  color: #FFF;
+}
+
+.green {
+  color: #449d44;
+}
+
+.red {
+  color: #c9302c;
+}
+
+.btn-success {
+  background-color: black;
+  border-color: #449d44;
+  color: #449d44;
+}
+
+.btn-success:focus {
+  color: #449d44;
+}
+
+.btn-danger {
+  background-color: black;
+  border-color: #c9302c;
+  color: #c9302c;
+}
+
+.btn-danger:focus {
+  color: #c9302c;
+}
+
+.actions {
+  width: 65%;
+  padding: 10px 0;
+  margin: 10px auto;
+  position: relative;
+}
+
+.action-outer .btn {
+  width: 150px;
+  height: 150px;
+  font-size: 60px;
+}
+
+.action-outer {
+  margin: 30px 0;
+}
+
+.player-name>* {
+  margin-right: 10px;
+}
+
+.player-name .btn {
+  width: 60px;
+}
+
+.blanket {
+  background-color: white;
+  opacity: .2;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.blanket-controls {
+  position:absolute;
+  top: 0;
+  left: 0;
+}
+
+.blanket-controls .action-outer .btn {
+  width: 200px;
+  height: 100px;
+  font-size: 30px;
+}
+
+.blanket.show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
+
+.player {
+  padding: 20px 0;
+}
+
+.answers-progress {
+  position: absolute;
+  top: 30px;
+  font-size: 30px;
+}
+
+.left .answers-progress {
+  right: 20px;
+}
+
+.right .answers-progress {
+  left: 20px;
+}
+
+.category-progress {
+  font-size: 17px;
+  padding-top: 20px;
+}
+.category-bubbles {
+  font-size: 50px;
+}
+
