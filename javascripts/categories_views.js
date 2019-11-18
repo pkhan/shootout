@@ -50,7 +50,8 @@ app.Views.Container = React.createClass({
         players: this.state.players,
         category: this.state.currentCategory,
         question: this.state.currentQuestion,
-        maxScore: this.state.winScore
+        maxScore: this.state.winScore,
+        categoryNum: this.state.currentCategoryNum
       })
     );
   },
@@ -111,7 +112,11 @@ app.Views.Players = React.createClass({
         category: this.props.category,
         maxScore: this.props.maxScore
       }),
-      React.createElement(app.Views.CategoryProgress, { questions: this.props.category.questions }),
+      React.createElement(app.Views.CategoryProgress, {
+        questions: this.props.category.questions,
+        category: this.props.category,
+        categoryNum: this.props.categoryNum
+      }),
       React.createElement(app.Views.Player, {
         player: this.props.players[1],
         position: "right",
@@ -187,14 +192,17 @@ app.Views.Player = React.createClass({
 
   render: function () {
     var question = this.props.question;
-    var category = this.props.category;
-
-    var isCategoryOwner = this.props.player.id === category.owner;
-    var categoryIsOpen = category.owner === null;
+    var active = this.props.player.active;
     var questionUnclaimed = question.state === enums.questionStates.UNCLAIMED;
-
-    var showBlanket = !categoryIsOpen && !isCategoryOwner || questionUnclaimed;
-    var showControls = isCategoryOwner && questionUnclaimed;
+    var showBlanket = true;
+    var showControls = false;
+    if (active) {
+      showControls = questionUnclaimed;
+      showBlanket = showControls;
+    } else {
+      showBlanket = true;
+      showControls = false;
+    }
 
     return React.createElement(
       "div",
@@ -252,10 +260,21 @@ app.Views.CategoryProgress = React.createClass({
       { className: "col-xs-2 category-progress" },
       React.createElement(
         "div",
+        { className: "category-num" },
+        "Category Number ",
+        this.props.categoryNum
+      ),
+      React.createElement(
+        "div",
         { className: "category-score" },
+        "Score: ",
         categoryScore
       ),
-      questions
+      React.createElement(
+        "div",
+        { className: "category-bubbles" },
+        questions
+      )
     );
   }
 });
@@ -293,8 +312,13 @@ app.Views.Blanket = React.createClass({
     var className = this.props.show ? " show" : "";
     return React.createElement(
       "div",
-      { className: "blanket" + className },
-      controls
+      null,
+      React.createElement("div", { className: "blanket" + className }),
+      React.createElement(
+        "div",
+        { className: "blanket-controls" },
+        controls
+      )
     );
   },
   handlePush: function () {

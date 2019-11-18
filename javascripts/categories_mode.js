@@ -36,12 +36,14 @@ _.extend(CategoryScorer, {
             players: [{
                 id: enums.players.PLAYER1,
                 name: "",
-                score: 0
+                score: 0,
+                active: true
             },
             {
                 id: enums.players.PLAYER2,
                 name: "",
-                score: 0 
+                score: 0,
+                active:true
             }],
             winScore: 10,
             questionsPerCategory: 5,
@@ -81,6 +83,8 @@ _.extend(CategoryScorer.prototype, {
     nextCategory: function() {
         this.bankPoints();
         if(this.state.gameState === enums.gameStates.ACTIVE) {
+            this.state.players[0].active = true;
+            this.state.players[1].active = true;
             this.state.currentCategoryNum = this.state.currentCategoryNum + 1;
             this.state.currentCategory = this.generateBlankCategory(this.state.questionsPerCategory);
             this.state.categories.push(this.state.currentCategory);
@@ -130,6 +134,8 @@ _.extend(CategoryScorer.prototype, {
             question.state = enums.questionStates.STOLEN;
         }
         question.answeredBy = playerId;
+        this.state.players[playerId].active = true;
+        this.state.players[1 - playerId].active = false;
         this.state.currentCategory.owner = playerId;
         if(question.id === this.state.questionsPerCategory - 1) {
             this.nextCategory();
@@ -149,6 +155,8 @@ _.extend(CategoryScorer.prototype, {
         if(question.state === enums.questionStates.WRONG) {
             return this.nextCategory();
         }
+        this.state.players[1 - playerId].active = true;
+        this.state.players[playerId].active = false;
         question.state = enums.questionStates.WRONG;
         question.answeredBy = playerId;
     },

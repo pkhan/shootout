@@ -48,6 +48,7 @@ app.Views.Container = React.createClass({
             category={this.state.currentCategory} 
             question={this.state.currentQuestion} 
             maxScore={this.state.winScore}
+            categoryNum={this.state.currentCategoryNum}
           />
         </div>
     },
@@ -92,7 +93,11 @@ app.Views.Players = React.createClass({
           category={this.props.category} 
           maxScore={this.props.maxScore}
         />
-        <app.Views.CategoryProgress questions={this.props.category.questions} />
+        <app.Views.CategoryProgress 
+          questions={this.props.category.questions} 
+          category={this.props.category}
+          categoryNum={this.props.categoryNum}
+        />
         <app.Views.Player 
           player={this.props.players[1]} 
           position={"right"} 
@@ -166,14 +171,17 @@ app.Views.Players = React.createClass({
   
     render: function () {
       var question = this.props.question;
-      var category = this.props.category;
-
-      var isCategoryOwner = this.props.player.id === category.owner;
-      var categoryIsOpen = category.owner === null;
+      var active = this.props.player.active;
       var questionUnclaimed = question.state === enums.questionStates.UNCLAIMED;
-
-      var showBlanket = (!categoryIsOpen && !isCategoryOwner) || (questionUnclaimed);
-      var showControls = (isCategoryOwner && questionUnclaimed);
+      var showBlanket = true;
+      var showControls = false;
+      if(active) {
+        showControls = questionUnclaimed;
+        showBlanket = showControls;
+      } else {
+        showBlanket = true;
+        showControls = false;
+      }
 
       return <div className={"col-xs-5 player " + this.props.position}>
         {/* <div className="player-name form-inline">
@@ -221,8 +229,11 @@ app.Views.Players = React.createClass({
         )
       }
       return <div className="col-xs-2 category-progress">
-        <div className="category-score">{categoryScore}</div>
-        {questions}
+        <div className="category-num">Category Number <br/> {this.props.categoryNum}</div>
+        <div className="category-score">Score: {categoryScore}</div>
+        <div className="category-bubbles">
+          {questions}
+        </div>
       </div>
     }
   });
@@ -246,8 +257,11 @@ app.Views.Players = React.createClass({
       }
 
       var className = this.props.show ? " show" : "";
-      return <div className={"blanket" + className}>
-        {controls}
+      return <div>
+        <div className={"blanket" + className}></div>
+        <div className="blanket-controls">
+          {controls}
+        </div>
       </div>
     },
     handlePush: function() {
